@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"github.com/wlchs/advent_of_code_go_template/days/day_0"
 	"github.com/wlchs/advent_of_code_go_template/days/day_01"
 	"github.com/wlchs/advent_of_code_go_template/days/day_02"
 	"github.com/wlchs/advent_of_code_go_template/days/day_03"
@@ -32,7 +31,6 @@ import (
 func RunChallenge(day int, inputPath string, mode int) {
 	input := LoadInputLines(inputPath)
 	mapping := map[int]func([]string, int){
-		0:  day_0.Run,
 		1:  day_01.Run,
 		2:  day_02.Run,
 		3:  day_03.Run,
