@@ -1,4 +1,4 @@
-# Advent of Code Project Template
+# Advent of Code 2023
 
 A lightweight execution environment for the [advent of code](https://adventofcode.com/) challenges written in Go.
 
@@ -13,7 +13,7 @@ Make sure you have Go >= 1.21.4 installed.
 ### Clone the repository
 
 ```sh
-git clone https://github.com/wlchs/advent_of_code_go_template
+git clone https://github.com/wlchs/aoc23
 ```
 
 ### Solve the daily challenges.
