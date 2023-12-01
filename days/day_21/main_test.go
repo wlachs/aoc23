@@ -21,7 +21,7 @@ func TestPartOne(t *testing.T) {
 func TestPartTwo(t *testing.T) {
 	t.Parallel()
 
-	input := internal.LoadInputLines("input_1_test.txt")
+	input := internal.LoadInputLines("input_2_test.txt")
 	expectedResult := internal.LoadFirstInputLine("solution_2.txt")
 	result := day_21.Part2(input)
 
