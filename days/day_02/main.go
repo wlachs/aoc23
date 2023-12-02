@@ -26,11 +26,13 @@ func Run(input []string, mode int) {
 // Part1 solves the first part of the exercise
 func Part1(input []string) string {
 	sum := 0
-	red := 12
-	green := 13
-	blue := 14
+	s := set{
+		red:   12,
+		green: 13,
+		blue:  14,
+	}
 	for rowId, game := range input {
-		if isPossible(game, red, green, blue) {
+		if isPossible(game, s) {
 			sum += rowId + 1
 		}
 	}
@@ -38,10 +40,10 @@ func Part1(input []string) string {
 }
 
 // isPossible checks whether the game with the given input is possible with the number of different cubes in the bag
-func isPossible(game string, red int, green int, blue int) bool {
+func isPossible(game string, cubes set) bool {
 	sets := getSets(game)
 	for _, s := range sets {
-		if s.red > red || s.green > green || s.blue > blue {
+		if s.red > cubes.red || s.green > cubes.green || s.blue > cubes.blue {
 			return false
 		}
 	}
@@ -53,27 +55,27 @@ func getSets(game string) []set {
 	gameWithoutId := strings.Split(game, ": ")[1]
 	setStrings := strings.Split(gameWithoutId, "; ")
 	var sets []set
-	for _, set := range setStrings {
-		sets = append(sets, getSet(set))
+	for _, s := range setStrings {
+		sets = append(sets, getSet(s))
 	}
 	return sets
 }
 
 // getSet receives a set as string and creates a set struct from it
 func getSet(setString string) set {
-	var set set
+	var s set
 	cubes := strings.Split(setString, ", ")
 	for _, cube := range cubes {
 		count, _ := strconv.Atoi(strings.Split(cube, " ")[0])
 		if strings.HasSuffix(cube, "red") {
-			set.red = count
+			s.red = count
 		} else if strings.HasSuffix(cube, "green") {
-			set.green = count
+			s.green = count
 		} else if strings.HasSuffix(cube, "blue") {
-			set.blue = count
+			s.blue = count
 		}
 	}
-	return set
+	return s
 }
 
 // Part2 solves the second part of the exercise
