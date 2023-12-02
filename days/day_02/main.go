@@ -80,5 +80,34 @@ func getSet(setString string) set {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	sum := 0
+	for _, game := range input {
+		sum += calculateMinPower(game)
+	}
+	return strconv.Itoa(sum)
+}
+
+// calculateMinPower calculates the power of the smallest set of cubes which still make the game possible
+func calculateMinPower(game string) int {
+	sets := getSets(game)
+	cubes := calculateMinCubes(sets)
+	return cubes.red * cubes.green * cubes.blue
+}
+
+// calculateMinCubes finds the smallest required value of each color to make the game possible.
+// The smallest required value is always the largest number in the input for the respective color.
+func calculateMinCubes(sets []set) set {
+	var m set
+	for _, s := range sets {
+		if s.red > m.red {
+			m.red = s.red
+		}
+		if s.green > m.green {
+			m.green = s.green
+		}
+		if s.blue > m.blue {
+			m.blue = s.blue
+		}
+	}
+	return m
 }
