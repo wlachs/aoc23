@@ -2,6 +2,7 @@ package day_03
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 )
 
@@ -51,9 +52,19 @@ func calculateSumOfParts(input []string) int {
 	return sum
 }
 
+// isNothing checks if the given character is "."
+func isNothing(c uint8) bool {
+	return c == 46
+}
+
 // isNumber checks if the given character can be converted to an integer or not
 func isNumber(c uint8) bool {
 	return c >= 48 && c <= 57
+}
+
+// isGear checks if the given character is "*"
+func isGear(c uint8) bool {
+	return c == 42
 }
 
 // isSymbolInRange checks whether there is a symbol directly before, after, above, below or diagonally next to the current position
@@ -76,10 +87,72 @@ func isSymbol(input []string, x int, y int) bool {
 	if x < 0 || x >= len(input[0]) {
 		return false
 	}
-	return !isNumber(input[y][x]) && input[y][x] != 46
+	return !isNumber(input[y][x]) && !isNothing(input[y][x])
 }
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	return strconv.Itoa(calculateSumOfGearParts(input))
+}
+
+// calculateSumOfGearParts calculates the sum of products of exactly two part numbers which can be found next to an *
+func calculateSumOfGearParts(input []string) int {
+	sum := 0
+	for y, row := range input {
+		for x := range row {
+			if isGear(input[y][x]) {
+				n := getNeighbouringNumbers(input, x, y)
+				if len(n) == 2 {
+					sum += n[0] * n[1]
+				}
+			}
+		}
+	}
+	return sum
+}
+
+// getNeighbouringNumbers gets all numbers which have a part neighbouring the current coordinates
+func getNeighbouringNumbers(input []string, x0 int, y0 int) []int {
+	var n []int
+	for x := -1; x <= 1; x++ {
+		for y := -1; y <= 1; y++ {
+			i, ok := getNumberIncludingCoordinates(input, x0+x, y0+y)
+			if ok && !slices.Contains(n, i) {
+				n = append(n, i)
+			}
+		}
+	}
+	return n
+}
+
+// getNumberIncludingCoordinates checks if the selected coordinates are part of a number and if yes then retrieves it
+func getNumberIncludingCoordinates(input []string, x int, y int) (int, bool) {
+	if y < 0 || y >= len(input) {
+		return 0, false
+	}
+	if x < 0 || x >= len(input[0]) {
+		return 0, false
+	}
+	if isNumber(input[y][x]) {
+		buffer := getNumbersLeft(input[y], x-1) + getNumbersRight(input[y], x)
+		i, _ := strconv.Atoi(buffer)
+		return i, true
+	}
+	return 0, false
+}
+
+// getNumbersLeft recursively gets a number as string crawling to the left
+func getNumbersLeft(s string, x int) string {
+	if x < 0 || !isNumber(s[x]) {
+		return ""
+	}
+	return getNumbersLeft(s, x-1) + string(s[x])
+}
+
+// getNumbersRight recursively gets a number as string crawling to the right
+func getNumbersRight(s string, x int) string {
+	if x >= len(s) || !isNumber(s[x]) {
+		return ""
+	}
+	return string(s[x]) + getNumbersRight(s, x+1)
 }
