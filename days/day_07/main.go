@@ -70,15 +70,6 @@ func (h hand) getTypeWithJoker() uint8 {
 	return strongestHand
 }
 
-// getCards converts the int array of cards to string
-func (h hand) getCards() string {
-	s := ""
-	for _, c := range h.cards {
-		s += string(c)
-	}
-	return s
-}
-
 // isStronger compares the current hand with a given one
 func (h hand) isStronger(other *hand, order [13]uint8, joker bool) bool {
 	var handType uint8
