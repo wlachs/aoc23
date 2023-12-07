@@ -44,6 +44,32 @@ func (h hand) getType() uint8 {
 	return 0 // high card
 }
 
+// getTypeWithJoker calculates the strength of the given hand while using jokers to make the hand stronger
+func (h hand) getTypeWithJoker() uint8 {
+	strongestHand := h.getType()
+	var nonJokerCards []uint8
+	for _, card := range h.cards {
+		if card != 'J' {
+			nonJokerCards = append(nonJokerCards, card)
+		}
+	}
+
+	for i, card := range h.cards {
+		if card == 'J' {
+			for _, nonJokerCard := range nonJokerCards {
+				otherHand := hand{
+					cards: h.cards,
+					bid:   h.bid,
+				}
+				otherHand.cards[i] = nonJokerCard
+				strongestHand = max(strongestHand, otherHand.getTypeWithJoker())
+			}
+		}
+	}
+
+	return strongestHand
+}
+
 // getCards converts the int array of cards to string
 func (h hand) getCards() string {
 	s := ""
@@ -54,9 +80,17 @@ func (h hand) getCards() string {
 }
 
 // isStronger compares the current hand with a given one
-func (h hand) isStronger(other *hand, order [13]uint8) bool {
-	handType := h.getType()
-	otherType := other.getType()
+func (h hand) isStronger(other *hand, order [13]uint8, joker bool) bool {
+	var handType uint8
+	var otherType uint8
+
+	if joker {
+		handType = h.getTypeWithJoker()
+		otherType = other.getTypeWithJoker()
+	} else {
+		handType = h.getType()
+		otherType = other.getType()
+	}
 
 	if handType != otherType {
 		return handType > otherType
@@ -102,7 +136,7 @@ func Part1(input []string) string {
 		'2',
 	}
 	hands := readHands(input)
-	return strconv.Itoa(calculateTotalWinnings(hands, cardOrder))
+	return strconv.Itoa(calculateTotalWinnings(hands, cardOrder, false))
 }
 
 // Part2 solves the second part of the exercise
@@ -122,8 +156,8 @@ func Part2(input []string) string {
 		'2',
 		'J',
 	}
-	fmt.Println(cardOrder)
-	return ""
+	hands := readHands(input)
+	return strconv.Itoa(calculateTotalWinnings(hands, cardOrder, true))
 }
 
 // readHands reads the input and converts the rows to hands
@@ -151,10 +185,10 @@ func cardsToArray(cards string) [5]uint8 {
 }
 
 // calculateTotalWinnings ranks the hands according to their type and multiplies the rank with the bidding value
-func calculateTotalWinnings(hands []hand, order [13]uint8) int {
+func calculateTotalWinnings(hands []hand, order [13]uint8, joker bool) int {
 	winnings := 0
 	sort.Slice(hands, func(i, j int) bool {
-		return hands[i].isStronger(&hands[j], order)
+		return hands[i].isStronger(&hands[j], order, joker)
 	})
 	for i, h := range hands {
 		rank := len(hands) - i
