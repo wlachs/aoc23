@@ -47,22 +47,17 @@ func (h hand) getType() uint8 {
 // getTypeWithJoker calculates the strength of the given hand while using jokers to make the hand stronger
 func (h hand) getTypeWithJoker() uint8 {
 	strongestHand := h.getType()
-	var nonJokerCards []uint8
-	for _, card := range h.cards {
-		if card != 'J' {
-			nonJokerCards = append(nonJokerCards, card)
-		}
-	}
-
 	for i, card := range h.cards {
 		if card == 'J' {
-			for _, nonJokerCard := range nonJokerCards {
-				otherHand := hand{
-					cards: h.cards,
-					bid:   h.bid,
+			for _, otherCard := range h.cards {
+				if otherCard != 'J' {
+					otherHand := hand{
+						cards: h.cards,
+						bid:   h.bid,
+					}
+					otherHand.cards[i] = otherCard
+					strongestHand = max(strongestHand, otherHand.getTypeWithJoker())
 				}
-				otherHand.cards[i] = nonJokerCard
-				strongestHand = max(strongestHand, otherHand.getTypeWithJoker())
 			}
 		}
 	}
