@@ -9,33 +9,6 @@ import (
 	"strings"
 )
 
-// cardOrder defines the priority order of cards
-var cardOrder = [13]uint8{
-	'A',
-	'K',
-	'Q',
-	'J',
-	'T',
-	'9',
-	'8',
-	'7',
-	'6',
-	'5',
-	'4',
-	'3',
-	'2',
-}
-
-// indexOfCard gets the index of the given card in the cardOrder slice
-func indexOfCard(c uint8) uint8 {
-	for i, u := range cardOrder {
-		if c == u {
-			return uint8(i)
-		}
-	}
-	panic("card not found")
-}
-
 // hand struct representing a set of cards
 type hand struct {
 	cards [5]uint8
@@ -81,7 +54,7 @@ func (h hand) getCards() string {
 }
 
 // isStronger compares the current hand with a given one
-func (h hand) isStronger(other *hand) bool {
+func (h hand) isStronger(other *hand, order [13]uint8) bool {
 	handType := h.getType()
 	otherType := other.getType()
 
@@ -90,8 +63,8 @@ func (h hand) isStronger(other *hand) bool {
 	}
 
 	for i := range h.cards {
-		handIndex := indexOfCard(h.cards[i])
-		otherIndex := indexOfCard(other.cards[i])
+		handIndex := indexOfCard(h.cards[i], order)
+		otherIndex := indexOfCard(other.cards[i], order)
 
 		if handIndex != otherIndex {
 			return handIndex < otherIndex
@@ -113,12 +86,43 @@ func Run(input []string, mode int) {
 
 // Part1 solves the first part of the exercise
 func Part1(input []string) string {
+	var cardOrder = [13]uint8{
+		'A',
+		'K',
+		'Q',
+		'J',
+		'T',
+		'9',
+		'8',
+		'7',
+		'6',
+		'5',
+		'4',
+		'3',
+		'2',
+	}
 	hands := readHands(input)
-	return strconv.Itoa(calculateTotalWinnings(hands))
+	return strconv.Itoa(calculateTotalWinnings(hands, cardOrder))
 }
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
+	var cardOrder = [13]uint8{
+		'A',
+		'K',
+		'Q',
+		'T',
+		'9',
+		'8',
+		'7',
+		'6',
+		'5',
+		'4',
+		'3',
+		'2',
+		'J',
+	}
+	fmt.Println(cardOrder)
 	return ""
 }
 
@@ -147,14 +151,24 @@ func cardsToArray(cards string) [5]uint8 {
 }
 
 // calculateTotalWinnings ranks the hands according to their type and multiplies the rank with the bidding value
-func calculateTotalWinnings(hands []hand) int {
+func calculateTotalWinnings(hands []hand, order [13]uint8) int {
 	winnings := 0
 	sort.Slice(hands, func(i, j int) bool {
-		return hands[i].isStronger(&hands[j])
+		return hands[i].isStronger(&hands[j], order)
 	})
 	for i, h := range hands {
 		rank := len(hands) - i
 		winnings += rank * int(h.bid)
 	}
 	return winnings
+}
+
+// indexOfCard gets the index of the given card in the cardOrder slice
+func indexOfCard(c uint8, cardOrder [13]uint8) uint8 {
+	for i, u := range cardOrder {
+		if c == u {
+			return uint8(i)
+		}
+	}
+	panic("card not found")
 }
