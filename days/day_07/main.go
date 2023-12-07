@@ -106,42 +106,14 @@ func Run(input []string, mode int) {
 
 // Part1 solves the first part of the exercise
 func Part1(input []string) string {
-	var cardOrder = [13]uint8{
-		'A',
-		'K',
-		'Q',
-		'J',
-		'T',
-		'9',
-		'8',
-		'7',
-		'6',
-		'5',
-		'4',
-		'3',
-		'2',
-	}
+	var cardOrder = [13]uint8{'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'}
 	hands := readHands(input)
 	return strconv.Itoa(calculateTotalWinnings(hands, cardOrder, false))
 }
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	var cardOrder = [13]uint8{
-		'A',
-		'K',
-		'Q',
-		'T',
-		'9',
-		'8',
-		'7',
-		'6',
-		'5',
-		'4',
-		'3',
-		'2',
-		'J',
-	}
+	var cardOrder = [13]uint8{'A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J'}
 	hands := readHands(input)
 	return strconv.Itoa(calculateTotalWinnings(hands, cardOrder, true))
 }
