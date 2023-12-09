@@ -28,7 +28,11 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	sum := 0
+	for _, i := range readInput(input) {
+		sum += predictPreviousValue(i)
+	}
+	return strconv.Itoa(sum)
 }
 
 // readInput reads the input and returns it as a 2D int slice
@@ -49,7 +53,19 @@ func predictNextValue(input []int) int {
 	for i := 0; i < len(input)-1; i++ {
 		diffs = append(diffs, input[i+1]-input[i])
 	}
-	return predictNextValue(diffs) + input[len(input)-1]
+	return input[len(input)-1] + predictNextValue(diffs)
+}
+
+// predictPreviousValue predicts the previous value of the input based on differences between subsequent values
+func predictPreviousValue(input []int) int {
+	if allZero(input) {
+		return 0
+	}
+	var diffs []int
+	for i := 0; i < len(input)-1; i++ {
+		diffs = append(diffs, input[i+1]-input[i])
+	}
+	return input[0] - predictPreviousValue(diffs)
 }
 
 // allZero iterates over the given int slice and checks whether every element of it equals zero
