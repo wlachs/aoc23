@@ -45,8 +45,12 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	m, s := readMap(input)
+	return strconv.Itoa(getEnclosedPoints(&m, &s))
 }
+
+// dim holds the size of the input map
+var dim coordinates
 
 // readMap reads the pipes of the input into a map
 func readMap(input []string) (map[coordinates]int32, coordinates) {
@@ -55,26 +59,29 @@ func readMap(input []string) (map[coordinates]int32, coordinates) {
 	for y, row := range input {
 		for x, c := range row {
 			coords := coordinates{x, y}
+			dim.x = max(dim.x, x)
+			dim.y = max(dim.y, y)
 			m[coords] = c
 			if c == 'S' {
 				s = coords
 			}
 		}
 	}
+	dim.x++
+	dim.y++
 	return m, s
 }
 
 // getFurthestPoint follows the pipes starting from the given coordinates and calculates the number of steps in which the furthest possible
 // point can be reached
 func getFurthestPoint(m *map[coordinates]int32, s *coordinates) int {
-	maxDistance := 0
 	for _, neighbour := range s.getNeighbours() {
 		l, ok := followPipe(m, s, &neighbour)
 		if ok {
-			maxDistance = max(maxDistance, len(l)/2)
+			return len(l) / 2
 		}
 	}
-	return maxDistance
+	panic("no loop found!")
 }
 
 // followPipe tries to follow the pipes of the input.
@@ -117,4 +124,73 @@ func transitionAllowed(m *map[coordinates]int32, s *coordinates, t *coordinates)
 		return slices.Contains(north, source) && slices.Contains(south, target)
 	}
 	return false
+}
+
+// getEnclosedPoints counts the number of ground (.) tiles enclosed by the pipe loop
+func getEnclosedPoints(m *map[coordinates]int32, s *coordinates) int {
+	for _, neighbour := range s.getNeighbours() {
+		l, ok := followPipe(m, s, &neighbour)
+		if ok {
+			return getEnclosedPointsByLoop(m, l)
+		}
+	}
+	panic("no loop found!")
+}
+
+// getEnclosedPointsByLoop gets the number points in the map enclosed by the provided loop
+func getEnclosedPointsByLoop(m *map[coordinates]int32, loop []coordinates) int {
+	loopLength := len(loop)
+	for i := 0; i < loopLength; i++ {
+		current := loop[i]
+		next := loop[(i+1)%loopLength]
+		previous := loop[((i-1%loopLength)+loopLength)%loopLength]
+		nextDir := coordinates{next.x - current.x, next.y - current.y}
+		previousDir := coordinates{current.x - previous.x, current.y - previous.y}
+		markSides(m, loop, &current, &nextDir)
+		markSides(m, loop, &current, &previousDir)
+	}
+	outside := (*m)[coordinates{-1, -1}]
+	var inside int32
+	if outside == 'A' {
+		inside = 'B'
+	} else {
+		inside = 'A'
+	}
+	countInside := 0
+	for _, tile := range *m {
+		if tile == inside {
+			countInside++
+		}
+	}
+	return countInside
+}
+
+// markSides marks every node on each side of the current tile based on the orientation.
+// Nodes on the left are marked with "A", nodes on the right with "B"
+func markSides(m *map[coordinates]int32, loop []coordinates, current *coordinates, direction *coordinates) {
+	switch *direction {
+	case coordinates{1, 0}:
+		mark(m, loop, &coordinates{current.x, current.y - 1}, 'A')
+		mark(m, loop, &coordinates{current.x, current.y + 1}, 'B')
+	case coordinates{0, -1}:
+		mark(m, loop, &coordinates{current.x - 1, current.y}, 'A')
+		mark(m, loop, &coordinates{current.x + 1, current.y}, 'B')
+	case coordinates{-1, 0}:
+		mark(m, loop, &coordinates{current.x, current.y + 1}, 'A')
+		mark(m, loop, &coordinates{current.x, current.y - 1}, 'B')
+	case coordinates{0, 1}:
+		mark(m, loop, &coordinates{current.x + 1, current.y}, 'A')
+		mark(m, loop, &coordinates{current.x - 1, current.y}, 'B')
+	}
+}
+
+// mark recursively marks the fields reachable from the current position without running out of bounds encountering a pipe of the loop
+func mark(m *map[coordinates]int32, loop []coordinates, c *coordinates, side int32) {
+	if slices.Contains(loop, *c) || c.x < -1 || c.y < -1 || c.x > dim.x || c.y > dim.y || (*m)[*c] == side {
+		return
+	}
+	(*m)[*c] = side
+	for _, neighbor := range c.getNeighbours() {
+		mark(m, loop, &neighbor, side)
+	}
 }
