@@ -2,6 +2,7 @@ package day_10
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 )
@@ -168,20 +169,12 @@ func getEnclosedPointsByLoop(m *map[coordinates]int32, loop []coordinates) int {
 // markSides marks every node on each side of the current tile based on the orientation.
 // Nodes on the left are marked with "A", nodes on the right with "B"
 func markSides(m *map[coordinates]int32, loop []coordinates, current *coordinates, direction *coordinates) {
-	switch *direction {
-	case coordinates{1, 0}:
-		mark(m, loop, &coordinates{current.x, current.y - 1}, 'A')
-		mark(m, loop, &coordinates{current.x, current.y + 1}, 'B')
-	case coordinates{0, -1}:
-		mark(m, loop, &coordinates{current.x - 1, current.y}, 'A')
-		mark(m, loop, &coordinates{current.x + 1, current.y}, 'B')
-	case coordinates{-1, 0}:
-		mark(m, loop, &coordinates{current.x, current.y + 1}, 'A')
-		mark(m, loop, &coordinates{current.x, current.y - 1}, 'B')
-	case coordinates{0, 1}:
-		mark(m, loop, &coordinates{current.x + 1, current.y}, 'A')
-		mark(m, loop, &coordinates{current.x - 1, current.y}, 'B')
-	}
+	x := direction.x*int(math.Cos(math.Pi/2)) - direction.y*int(math.Sin(math.Pi/2))
+	y := direction.x*int(math.Sin(math.Pi/2)) + direction.y*int(math.Cos(math.Pi/2))
+	left := coordinates{current.x + x, current.y + y}
+	right := coordinates{current.x - x, current.y - y}
+	mark(m, loop, &left, 'A')
+	mark(m, loop, &right, 'B')
 }
 
 // mark recursively marks the fields reachable from the current position without running out of bounds encountering a pipe of the loop
