@@ -1,6 +1,8 @@
 # Advent of Code 2023
 
-A lightweight execution environment for the [advent of code](https://adventofcode.com/) challenges written in Go.
+A lightweight execution environment for the [Advent of Code](https://adventofcode.com/) challenges written in Go.
+
+<!--- advent_readme_stars table --->
 
 ## Get started
 
