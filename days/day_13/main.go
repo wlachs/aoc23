@@ -69,9 +69,8 @@ func calculateReflectionsWithSmudge(input []string) int {
 			} else {
 				c = '#'
 			}
-			newRow := input[y][:x] + string(c) + input[y][x+1:]
 			clone := slices.Clone(input)
-			clone[y] = newRow
+			clone[y] = input[y][:x] + string(c) + input[y][x+1:]
 			ref := calculateReflections(clone, oldRef)
 			if ref > 0 && ref != oldRef {
 				return ref
