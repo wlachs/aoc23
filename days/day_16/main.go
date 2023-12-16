@@ -76,7 +76,38 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	m := utils.ParseInputToMap(input)
+	br := bottomRight(m)
+	maxEnergy := 0
+	for vec := range m {
+		if vec.X > 0 && vec.X < br.X && vec.Y > 0 && vec.Y < br.Y {
+			continue
+		}
+		v := map[types.Vec2]bool{}
+		start := types.Vec2{X: 0, Y: 0}
+		dir := types.Vec2{X: 0, Y: 0}
+		if vec.X == 0 {
+			start = types.Vec2{X: -1, Y: vec.Y}
+			dir = types.Vec2{X: 1, Y: 0}
+		} else if vec.X == br.X {
+			start = types.Vec2{X: br.X + 1, Y: vec.Y}
+			dir = types.Vec2{X: -1, Y: 0}
+		} else if vec.Y == 0 {
+			start = types.Vec2{X: vec.X, Y: -1}
+			dir = types.Vec2{X: 0, Y: 1}
+		} else if vec.Y == br.Y {
+			start = types.Vec2{X: vec.X, Y: br.Y + 1}
+			dir = types.Vec2{X: 0, Y: -1}
+		}
+		moveBeams(m, []Beam{
+			{
+				Vec2: start,
+				dir:  dir,
+			},
+		}, v)
+		maxEnergy = max(maxEnergy, energy(v))
+	}
+	return strconv.Itoa(maxEnergy)
 }
 
 // moveBeams iterates over the map and marks visited fields by beams.
@@ -99,6 +130,7 @@ func moveBeams(m map[types.Vec2]int32, beams []Beam, v map[types.Vec2]bool) {
 	}
 }
 
+// energy calculates the overall number of visited fields of the map
 func energy(v map[types.Vec2]bool) int {
 	sum := 0
 	for _, val := range v {
@@ -109,17 +141,12 @@ func energy(v map[types.Vec2]bool) int {
 	return sum
 }
 
-func printMap(m map[types.Vec2]bool) {
-	for y := 0; y < 10; y++ {
-		for x := 0; x < 10; x++ {
-			_, ok := m[types.Vec2{X: x, Y: y}]
-			if ok {
-				fmt.Print("#")
-			} else {
-				fmt.Print(".")
-			}
-		}
-		fmt.Println()
+// bottomRight finds the element at the bottom right position of the map
+func bottomRight(m map[types.Vec2]int32) types.Vec2 {
+	r := types.Vec2{X: 0, Y: 0}
+	for vec := range m {
+		r.X = max(r.X, vec.X)
+		r.Y = max(r.Y, vec.Y)
 	}
-	fmt.Println()
+	return r
 }
