@@ -44,6 +44,11 @@ func (c Vec2) Add(a *Vec2) Vec2 {
 	return Vec2{c.X + a.X, c.Y + a.Y}
 }
 
+// Subtract calculates the difference between two vectors.
+func (c Vec2) Subtract(a *Vec2) Vec2 {
+	return Vec2{c.X - a.X, c.Y - a.Y}
+}
+
 // RotateLeft rotates the vector 90 degrees to the left.
 func (c Vec2) RotateLeft() Vec2 {
 	return Vec2{
