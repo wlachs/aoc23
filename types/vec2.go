@@ -64,3 +64,8 @@ func (c Vec2) RotateRight() Vec2 {
 		Y: c.X*int(math.Sin(math.Pi/2)) + c.Y*int(math.Cos(math.Pi/2)),
 	}
 }
+
+// Multiply multiplies both coordinates of the vector by the given scalar.
+func (c Vec2) Multiply(i int) Vec2 {
+	return Vec2{X: i * c.X, Y: i * c.Y}
+}
