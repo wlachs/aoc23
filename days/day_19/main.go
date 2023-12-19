@@ -3,6 +3,7 @@ package day_19
 import (
 	"fmt"
 	"github.com/wlchs/advent_of_code_go_template/utils"
+	"maps"
 	"regexp"
 	"strconv"
 	"strings"
@@ -32,7 +33,14 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	workflows, _ := parseInput(input)
+	sum := execCount("in", map[string][]int{
+		"x": {1, 4000},
+		"m": {1, 4000},
+		"a": {1, 4000},
+		"s": {1, 4000},
+	}, workflows)
+	return strconv.Itoa(sum)
 }
 
 // parseInput processes workflows and ratings of the input
@@ -79,9 +87,7 @@ func exec(fn string, ratings map[string]int, workflows map[string][]string) bool
 	for _, step := range workflow {
 		matchesCondition := reCondition.FindStringSubmatch(step)
 		if len(matchesCondition) > 0 {
-			if matchesCondition[2] == "<" && ratings[matchesCondition[1]] < utils.Atoi(matchesCondition[3]) {
-				return exec(matchesCondition[4], ratings, workflows)
-			} else if matchesCondition[2] == ">" && ratings[matchesCondition[1]] > utils.Atoi(matchesCondition[3]) {
+			if (matchesCondition[2] == "<" && ratings[matchesCondition[1]] < utils.Atoi(matchesCondition[3])) || (matchesCondition[2] == ">" && ratings[matchesCondition[1]] > utils.Atoi(matchesCondition[3])) {
 				return exec(matchesCondition[4], ratings, workflows)
 			}
 		} else {
@@ -91,6 +97,36 @@ func exec(fn string, ratings map[string]int, workflows map[string][]string) bool
 	return true
 }
 
+// execCount counts how many different rating combinations will yield A starting from the current workflow
+func execCount(fn string, ratings map[string][]int, workflows map[string][]string) int {
+	if fn == "A" {
+		return multiplyAll(ratings)
+	} else if fn == "R" {
+		return 0
+	}
+	counts := 0
+	workflow := workflows[fn]
+	reCondition := regexp.MustCompile(`(?P<a>\w)(?P<b>[<>])(?P<c>\d+):(?P<d>\w+)`)
+	for _, step := range workflow {
+		matchesCondition := reCondition.FindStringSubmatch(step)
+		if len(matchesCondition) > 0 {
+			clone := maps.Clone(ratings)
+			if matchesCondition[2] == "<" {
+				clone[matchesCondition[1]] = []int{clone[matchesCondition[1]][0], min(clone[matchesCondition[1]][1], utils.Atoi(matchesCondition[3])-1)}
+				counts += execCount(matchesCondition[4], clone, workflows)
+				ratings[matchesCondition[1]] = []int{max(ratings[matchesCondition[1]][0], utils.Atoi(matchesCondition[3])), ratings[matchesCondition[1]][1]}
+			} else {
+				clone[matchesCondition[1]] = []int{max(clone[matchesCondition[1]][0], utils.Atoi(matchesCondition[3])+1), clone[matchesCondition[1]][1]}
+				counts += execCount(matchesCondition[4], clone, workflows)
+				ratings[matchesCondition[1]] = []int{ratings[matchesCondition[1]][0], min(ratings[matchesCondition[1]][1], utils.Atoi(matchesCondition[3]))}
+			}
+		} else {
+			counts += execCount(step, ratings, workflows)
+		}
+	}
+	return counts
+}
+
 // addAll adds all ratings of a given rating map
 func addAll(rating map[string]int) int {
 	sum := 0
@@ -98,4 +134,13 @@ func addAll(rating map[string]int) int {
 		sum += i
 	}
 	return sum
+}
+
+// multiplyAll multiplies all possible rating combinations
+func multiplyAll(ratings map[string][]int) int {
+	product := 1
+	for _, ints := range ratings {
+		product *= max(ints[1]-ints[0]+1, 0)
+	}
+	return product
 }
