@@ -140,7 +140,7 @@ func addAll(rating map[string]int) int {
 func multiplyAll(ratings map[string][]int) int {
 	product := 1
 	for _, ints := range ratings {
-		product *= max(ints[1]-ints[0]+1, 0)
+		product *= ints[1] - ints[0] + 1
 	}
 	return product
 }
