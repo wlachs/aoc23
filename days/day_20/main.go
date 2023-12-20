@@ -46,7 +46,6 @@ func (receiver *messageQueue) pop() MessageQueueEntry {
 
 // Module is the general module interface implemented by all module types
 type Module interface {
-	pre(p bool, src Module)
 	pulse(p bool, src Module)
 	addInput(m Module)
 	addOutput(m Module)
@@ -60,11 +59,6 @@ type FlipFlop struct {
 	outputNodes  []Module
 }
 
-// pre is responsible for preparing the module for pulsing
-func (receiver *FlipFlop) pre(_ bool, _ Module) {
-	//
-}
-
 // pulse handler of a FlipFlop module
 func (receiver *FlipFlop) pulse(p bool, _ Module) {
 	if p {
@@ -72,15 +66,12 @@ func (receiver *FlipFlop) pulse(p bool, _ Module) {
 	}
 	receiver.state = !receiver.state
 	for _, module := range receiver.outputNodes {
-		if module != nil {
-			module.pre(receiver.state, receiver)
-		}
 		receiver.messageQueue.add(MessageQueueEntry{source: receiver, target: module, pulse: receiver.state})
 	}
 }
 
 // addInput adds the given node to the current node's input queue
-func (receiver *FlipFlop) addInput(m Module) {
+func (receiver *FlipFlop) addInput(_ Module) {
 	//
 }
 
@@ -97,13 +88,9 @@ type Conjunction struct {
 	outputNodes  []Module
 }
 
-// pre is responsible for preparing the module for pulsing
-func (receiver *Conjunction) pre(p bool, src Module) {
-	receiver.inputMemory[src] = p
-}
-
 // pulse handler of a Conjunction module
-func (receiver *Conjunction) pulse(_ bool, _ Module) {
+func (receiver *Conjunction) pulse(p bool, src Module) {
+	receiver.inputMemory[src] = p
 	out := false
 	for _, b := range receiver.inputMemory {
 		if !b {
@@ -112,9 +99,6 @@ func (receiver *Conjunction) pulse(_ bool, _ Module) {
 		}
 	}
 	for _, module := range receiver.outputNodes {
-		if module != nil {
-			module.pre(out, receiver)
-		}
 		receiver.messageQueue.add(MessageQueueEntry{source: receiver, target: module, pulse: out})
 	}
 }
@@ -135,17 +119,9 @@ type Broadcaster struct {
 	outputNodes  []Module
 }
 
-// pre is responsible for preparing the module for pulsing
-func (receiver *Broadcaster) pre(_ bool, _ Module) {
-	//
-}
-
 // pulse handler of the Broadcaster module
 func (receiver *Broadcaster) pulse(p bool, _ Module) {
 	for _, module := range receiver.outputNodes {
-		if module != nil {
-			module.pre(p, receiver)
-		}
 		receiver.messageQueue.add(MessageQueueEntry{source: receiver, target: module, pulse: p})
 	}
 }
