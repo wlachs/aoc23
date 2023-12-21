@@ -27,7 +27,9 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	m := utils.ParseInputToMap(input)
+	s := findStart(m)
+	return strconv.Itoa(countInfiniteFields(m, s))
 }
 
 // findStart finds the 'S' node's coordinates on the input map
@@ -54,12 +56,42 @@ func countFields(m map[types.Vec2]int32, s types.Vec2) int {
 	return len(acc)
 }
 
+// countInfiniteFields counts the number of reachable fields in 26501365 steps starting from the given coordinates.
+// The map wraps around infinitely
+func countInfiniteFields(m map[types.Vec2]int32, s types.Vec2) int {
+	acc := []types.Vec2{s}
+	d := bottomRight(m)
+	for n := 0; n < 100; n++ {
+		var nextAcc []types.Vec2
+		for _, vec2 := range acc {
+			ns := infiniteNeighbours(m, vec2, d)
+			nextAcc = addIfNotAlready(nextAcc, ns)
+		}
+		acc = nextAcc
+	}
+	return len(acc)
+}
+
 // neighbours calculates the neighbouring vectors of the given one and checks whether the input map has a navigable field on them
 func neighbours(m map[types.Vec2]int32, vec2 types.Vec2) []types.Vec2 {
 	res := make([]types.Vec2, 0, 4)
 	n := vec2.Around()
 	for _, v := range n {
 		if m[v] == '.' || m[v] == 'S' {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
+// infiniteNeighbours calculates the neighbouring vectors of the given one and checks whether the input map has a navigable field on them.
+// The input map wraps around infinitely.
+func infiniteNeighbours(m map[types.Vec2]int32, vec2 types.Vec2, d types.Vec2) []types.Vec2 {
+	res := make([]types.Vec2, 0, 4)
+	n := vec2.Around()
+	for _, v := range n {
+		vProj := types.Vec2{X: mod(v.X, d.X), Y: mod(v.Y, d.Y)}
+		if m[vProj] == '.' || m[vProj] == 'S' {
 			res = append(res, v)
 		}
 	}
@@ -74,4 +106,41 @@ func addIfNotAlready(acc []types.Vec2, neighbours []types.Vec2) []types.Vec2 {
 		}
 	}
 	return acc
+}
+
+// bottomRight finds the element at the bottom right position of the map
+func bottomRight(m map[types.Vec2]int32) types.Vec2 {
+	r := types.Vec2{X: 0, Y: 0}
+	for vec := range m {
+		r.X = max(r.X, vec.X+1)
+		r.Y = max(r.Y, vec.Y+1)
+	}
+	return r
+}
+
+// mod implements a modulo function that returns an always positive remainder
+func mod(i int, m int) int {
+	return ((i % m) + m) % m
+}
+
+func printMap(m map[types.Vec2]int32, acc []types.Vec2) {
+	fmt.Println(len(acc))
+	br := bottomRight(m)
+	for y := -br.Y; y < 2*br.Y; y++ {
+		for x := -br.X; x < 2*br.X; x++ {
+			v := types.Vec2{X: mod(x, br.X), Y: mod(y, br.Y)}
+			vOrig := types.Vec2{X: x, Y: y}
+			if m[v] == '#' {
+				fmt.Print("#")
+			} else if slices.Contains(acc, vOrig) {
+				fmt.Print("O")
+			} else if v == vOrig {
+				fmt.Print(string(m[v]))
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println()
 }
