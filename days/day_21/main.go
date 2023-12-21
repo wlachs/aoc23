@@ -59,17 +59,27 @@ func countFields(m map[types.Vec2]int32, s types.Vec2) int {
 // countInfiniteFields counts the number of reachable fields in 26501365 steps starting from the given coordinates.
 // The map wraps around infinitely
 func countInfiniteFields(m map[types.Vec2]int32, s types.Vec2) int {
-	acc := []types.Vec2{s}
+	var accPrev []types.Vec2
+	accNext := []types.Vec2{s}
 	d := bottomRight(m)
-	for n := 0; n < 100; n++ {
-		var nextAcc []types.Vec2
-		for _, vec2 := range acc {
+	evenCount := 1
+	for n := 1; n <= 5000; n++ {
+		var accDelta []types.Vec2
+		for _, vec2 := range accNext {
 			ns := infiniteNeighbours(m, vec2, d)
-			nextAcc = addIfNotAlready(nextAcc, ns)
+			for _, t := range ns {
+				if !slices.Contains(accDelta, t) && !slices.Contains(accPrev, t) {
+					accDelta = append(accDelta, t)
+				}
+			}
 		}
-		acc = nextAcc
+		accPrev = accNext
+		accNext = accDelta
+		if n%2 == 0 {
+			evenCount += len(accNext)
+		}
 	}
-	return len(acc)
+	return evenCount
 }
 
 // neighbours calculates the neighbouring vectors of the given one and checks whether the input map has a navigable field on them
@@ -98,7 +108,7 @@ func infiniteNeighbours(m map[types.Vec2]int32, vec2 types.Vec2, d types.Vec2) [
 	return res
 }
 
-// addIfNotAlready adds neighbouring elements to the slice if there are not already contained
+// addIfNotAlready adds neighbouring elements to the slice if they are not already contained
 func addIfNotAlready(acc []types.Vec2, neighbours []types.Vec2) []types.Vec2 {
 	for _, neighbour := range neighbours {
 		if !slices.Contains(acc, neighbour) {
@@ -123,7 +133,7 @@ func mod(i int, m int) int {
 	return ((i % m) + m) % m
 }
 
-func printMap(m map[types.Vec2]int32, acc []types.Vec2) {
+func printMap(m map[types.Vec2]int32, acc ...[]types.Vec2) {
 	fmt.Println(len(acc))
 	br := bottomRight(m)
 	for y := -br.Y; y < 2*br.Y; y++ {
@@ -132,8 +142,10 @@ func printMap(m map[types.Vec2]int32, acc []types.Vec2) {
 			vOrig := types.Vec2{X: x, Y: y}
 			if m[v] == '#' {
 				fmt.Print("#")
-			} else if slices.Contains(acc, vOrig) {
+			} else if slices.Contains(acc[0], vOrig) {
 				fmt.Print("O")
+			} else if len(acc) > 1 && slices.Contains(acc[1], vOrig) {
+				fmt.Print("X")
 			} else if v == vOrig {
 				fmt.Print(string(m[v]))
 			} else {
