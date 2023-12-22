@@ -59,11 +59,13 @@ func countFields(m map[types.Vec2]int32, s types.Vec2) int {
 // countInfiniteFields counts the number of reachable fields in 26501365 steps starting from the given coordinates.
 // The map wraps around infinitely
 func countInfiniteFields(m map[types.Vec2]int32, s types.Vec2) int {
+	d := bottomRight(m)
+	init := make([]int, d.X)
+	delta := make([]int, d.X)
+	prevs := make([]int, d.X)
 	var accPrev []types.Vec2
 	accNext := []types.Vec2{s}
-	d := bottomRight(m)
-	evenCount := 1
-	for n := 1; n <= 5000; n++ {
+	for n := 1; n < 3*d.X; n++ {
 		var accDelta []types.Vec2
 		for _, vec2 := range accNext {
 			ns := infiniteNeighbours(m, vec2, d)
@@ -75,11 +77,28 @@ func countInfiniteFields(m map[types.Vec2]int32, s types.Vec2) int {
 		}
 		accPrev = accNext
 		accNext = accDelta
-		if n%2 == 0 {
-			evenCount += len(accNext)
+		if n >= d.X && n < 2*d.X {
+			prevs[n%d.X] = len(accNext)
+		} else if n >= 2*d.X {
+			delta[n%d.X] = len(accNext) - prevs[n%d.X]
+		} else {
+			init[n] = len(accNext)
 		}
 	}
-	return evenCount
+	c := 0
+	mx := 26501365
+	for i := mx % 2; i <= mx; i += 2 {
+		c += step(init, prevs, delta, i, d.X)
+	}
+	return c
+}
+
+// step counts the number of newly visited fields as the given iteration
+func step(init []int, prevs []int, delta []int, x int, d int) int {
+	if x < d {
+		return init[x]
+	}
+	return prevs[x%d] + (x/d-1)*delta[x%d]
 }
 
 // neighbours calculates the neighbouring vectors of the given one and checks whether the input map has a navigable field on them
@@ -131,28 +150,4 @@ func bottomRight(m map[types.Vec2]int32) types.Vec2 {
 // mod implements a modulo function that returns an always positive remainder
 func mod(i int, m int) int {
 	return ((i % m) + m) % m
-}
-
-func printMap(m map[types.Vec2]int32, acc ...[]types.Vec2) {
-	fmt.Println(len(acc))
-	br := bottomRight(m)
-	for y := -br.Y; y < 2*br.Y; y++ {
-		for x := -br.X; x < 2*br.X; x++ {
-			v := types.Vec2{X: mod(x, br.X), Y: mod(y, br.Y)}
-			vOrig := types.Vec2{X: x, Y: y}
-			if m[v] == '#' {
-				fmt.Print("#")
-			} else if slices.Contains(acc[0], vOrig) {
-				fmt.Print("O")
-			} else if len(acc) > 1 && slices.Contains(acc[1], vOrig) {
-				fmt.Print("X")
-			} else if v == vOrig {
-				fmt.Print(string(m[v]))
-			} else {
-				fmt.Print(".")
-			}
-		}
-		fmt.Println()
-	}
-	fmt.Println()
 }
