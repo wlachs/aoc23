@@ -5,6 +5,7 @@ import (
 	"github.com/wlchs/advent_of_code_go_template/types"
 	"github.com/wlchs/advent_of_code_go_template/utils"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -76,16 +77,9 @@ func Run(input []string, mode int) {
 
 // Part1 solves the first part of the exercise
 func Part1(input []string) string {
-	bricks := readInput(input)
-	finalBricks := make([]Brick, 0, len(bricks))
-	for len(bricks) > 0 {
-		l, rest := lowest(bricks)
-		bricks = rest
-		finalBricks = append(finalBricks, l.pushDown(finalBricks))
-	}
-	buildSupportStructures(finalBricks)
+	bricks := prepareBricks(input)
 	count := 0
-	for _, brick := range finalBricks {
+	for _, brick := range bricks {
 		canBeRemoved := true
 		for _, support := range brick.supports {
 			if len(support.supportedBy) < 2 {
@@ -102,7 +96,25 @@ func Part1(input []string) string {
 
 // Part2 solves the second part of the exercise
 func Part2(input []string) string {
-	return ""
+	bricks := prepareBricks(input)
+	sum := 0
+	for i := range bricks {
+		sum += fallingBricksCount(bricks[i+1:], []*Brick{&bricks[i]})
+	}
+	return strconv.Itoa(sum)
+}
+
+// prepareBricks finds each bricks lowest final location and build the brick dependency graph
+func prepareBricks(input []string) []Brick {
+	bricks := readInput(input)
+	finalBricks := make([]Brick, 0, len(bricks))
+	for len(bricks) > 0 {
+		l, rest := lowest(bricks)
+		bricks = rest
+		finalBricks = append(finalBricks, l.pushDown(finalBricks))
+	}
+	buildSupportStructures(finalBricks)
+	return finalBricks
 }
 
 // readInput reads the input and generates the bricks
@@ -173,4 +185,22 @@ func buildSupportStructure(brick *Brick, bricks []Brick) {
 			brick.supportedBy = append(brick.supportedBy, &bricks[i])
 		}
 	}
+}
+
+// fallingBricksCount recursively calculates the overall number of falling bricks if the provided list of bricks are removed from the system
+func fallingBricksCount(bricks []Brick, removedBricks []*Brick) int {
+	count := 0
+	for i, brick := range bricks {
+		willFall := true
+		for _, supportedBy := range brick.supportedBy {
+			if !slices.Contains(removedBricks, supportedBy) {
+				willFall = false
+			}
+		}
+		if willFall && brick.minZ() != 1 {
+			removedBricks = append(removedBricks, &bricks[i])
+			count++
+		}
+	}
+	return count
 }
