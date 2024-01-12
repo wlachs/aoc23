@@ -2,7 +2,7 @@ package types
 
 import "math"
 
-// Vec2 define a pair of X Y values of a 2D vector
+// Vec2 defines a pair of X Y values of a 2D vector
 type Vec2 struct {
 	X int
 	Y int
