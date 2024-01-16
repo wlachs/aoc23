@@ -57,8 +57,9 @@ func findLongestPath(m map[types.Vec2]int32, path []types.Vec2, dim types.Vec2, 
 			options = findNextOptions(m, path, dim)
 		}
 		if len(options) == 0 {
-			if path[len(path)-1].Y == dim.Y-1 {
-				return len(path) - 1
+			p := len(path)
+			if path[p-1].Y == dim.Y-1 {
+				return p - 1
 			}
 			return 0
 		}
