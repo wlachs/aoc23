@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 // FloatVec3 is the float64 implementation of the Vec3 type
@@ -33,10 +32,9 @@ func Run(input []string, mode int) {
 
 // Part1 solves the first part of the exercise
 func Part1(input []string) string {
-	r := strings.Split(input[0], " ")
-	hailStones := readInput(input[2:])
-	rangeStart, _ := strconv.ParseFloat(r[0], 64)
-	rangeEnd, _ := strconv.ParseFloat(r[1], 64)
+	hailStones := readInput(input)
+	rangeStart := float64(200000000000000)
+	rangeEnd := float64(400000000000000)
 	return strconv.Itoa(countIntersections(hailStones, rangeStart, rangeEnd))
 }
 
